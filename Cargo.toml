@@ -4,5 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "utilities for adding aliases from CLI programs"
 authors = ["Ben Schofield <me@benjscho.dev>"]
+license = "MIT"
+repository = "https://github.com/Benjscho/aliases"
 
 [dependencies]
