@@ -8,3 +8,5 @@ license = "MIT"
 repository = "https://github.com/Benjscho/aliases"
 
 [dependencies]
+anyhow = "1.0.89"
+dirs = "5.0.1"
