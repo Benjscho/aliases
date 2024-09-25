@@ -2,44 +2,32 @@ use std::{io::Write, str::FromStr};
 
 use anyhow::{bail, Context, Result};
 
-#[derive(Default)]
-pub struct AliasWriter {
-    aliases: Vec<(String, String)>,
-}
+pub fn write_aliases<'a>(
+    shell: Shell,
+    aliases: impl IntoIterator<Item = (&'a str, &'a str)>,
+) -> Result<()> {
+    let home = dirs::home_dir().context("User does not have a home dir.")?;
+    let config = match shell {
+        Shell::Bash => home.join(".bashrc"),
+        Shell::Zsh => home.join(".zshrc"),
+        Shell::Fish => home.join(".config/fish/config.fish"),
+    };
 
-impl AliasWriter {
-    pub fn new() -> Self {
-        AliasWriter::default()
-    }
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open(config)?;
 
-    pub fn add_alias(&mut self, alias: &str, command: &str) {
-        self.aliases.push((alias.to_string(), command.to_string()));
-    }
-
-    pub fn write_aliases(&self, shell: Shell) -> Result<()> {
-        let home = dirs::home_dir().context("User does not have a home dir.")?;
-        let config = match shell {
-            Shell::Bash => home.join(".bashrc"),
-            Shell::Zsh => home.join(".zshrc"),
-            Shell::Fish => home.join(".config/fish/config.fish"),
+    for (alias, command) in aliases {
+        let alias_line = match shell {
+            Shell::Bash | Shell::Zsh => format!("alias {}='{}'", alias, command),
+            Shell::Fish => format!("alias {}='{}'", alias, command.replace("'", "\\''")),
         };
-
-        let mut file = std::fs::OpenOptions::new()
-            .write(true)
-            .append(true)
-            .create(true)
-            .open(config)?;
-
-        for (alias, command) in &self.aliases {
-            let alias_line = match shell {
-                Shell::Bash | Shell::Zsh => format!("alias {}='{}'", alias, command),
-                Shell::Fish => format!("alias {}='{}'", alias, command.replace("'", "\\''")),
-            };
-            writeln!(file, "{}", alias_line)?;
-        }
-
-        Ok(())
+        writeln!(file, "{}", alias_line)?;
     }
+
+    Ok(())
 }
 
 #[derive(Debug, PartialEq)]
