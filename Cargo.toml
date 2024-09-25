@@ -1,6 +1,6 @@
 [package]
 name = "aliases"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "utilities for adding aliases from CLI programs"
 authors = ["Ben Schofield <me@benjscho.dev>"]
