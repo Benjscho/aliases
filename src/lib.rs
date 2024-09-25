@@ -2,10 +2,10 @@ use std::{io::Write, str::FromStr};
 
 use anyhow::{bail, Context, Result};
 
-pub fn write_aliases<'a>(
-    shell: Shell,
-    aliases: impl IntoIterator<Item = (&'a str, &'a str)>,
-) -> Result<()> {
+pub fn write_aliases<'a, S>(shell: Shell, aliases: impl IntoIterator<Item = (S, S)>) -> Result<()>
+where
+    S: ToString,
+{
     let home = dirs::home_dir().context("User does not have a home dir.")?;
     let config = match shell {
         Shell::Bash => home.join(".bashrc"),
@@ -21,8 +21,14 @@ pub fn write_aliases<'a>(
 
     for (alias, command) in aliases {
         let alias_line = match shell {
-            Shell::Bash | Shell::Zsh => format!("alias {}='{}'", alias, command),
-            Shell::Fish => format!("alias {}='{}'", alias, command.replace("'", "\\''")),
+            Shell::Bash | Shell::Zsh => {
+                format!("alias {}='{}'", alias.to_string(), command.to_string())
+            }
+            Shell::Fish => format!(
+                "alias {}='{}'",
+                alias.to_string(),
+                command.to_string().replace("'", "\\''")
+            ),
         };
         writeln!(file, "{}", alias_line)?;
     }
